@@ -45,22 +45,22 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
      */
     public void enqueue(Item item) {
         // double size of array if necessary and recopy to front of array
-        N++;
+        if (item == null) throw new NullPointerException();
         if (N == q.length) resize(2*q.length);   // double size of array if necessary
-        q[N-1] = item;                        // add item
+        q[N++] = item;                        // add item
     }
 
     /**
-     * Removes and returns the item on this queue that was least recently added.
-     * @return the item on this queue that was least recently added
+     * Removes and returns the random item on this queue.
+     * @return the random item on this queue
      * @throws java.util.NoSuchElementException if this queue is empty
      */
     public Item dequeue() {
         if (isEmpty()) throw new NoSuchElementException("Queue underflow");
         int index = StdRandom.uniform(N);
         Item item = q[index];
-        q[index] = q[N-1];
-        N--;
+        q[index] = q[--N];
+        q[N] = null;
         // shrink size of array if necessary
         if (N > 0 && N == q.length/4) resize(q.length/2);
         return item;
@@ -79,31 +79,30 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     /**
      * Returns a string representation of this queue.
      * @return the sequence of items in RANDOM order, separated by spaces
-     */
     public String toString() {
         StringBuilder s = new StringBuilder();
         for (Item item : this)
             s.append(item + " ");
         return s.toString();
     }
-
+     */
 
     /**
-     * Returns an iterator that iterates over the items in this queue in FIFO order.
-     * @return an iterator that iterates over the items in this queue in FIFO order
+     * Returns an iterator that iterates over items in this queue in Randomly
+     * @return an iterator that iterates over items in this queue in Randomly
      */
     public Iterator<Item> iterator() {
         return new RandomizedQueueIterator();
     }
 
-    // an iterator, doesn't implement remove() since it's optional
+    // an iterator, doesn't implement remove()
     private class RandomizedQueueIterator implements Iterator<Item> {
         private int i = 0;
-        private int indexes[];
+        private int[] indexes;
         public RandomizedQueueIterator() {
-        	indexes = new int [N];
-            for (int i = 0; i < N; i++)
-            	indexes[i] = i;
+            indexes = new int [N];
+            for (int j = 0; j < N; j++)
+                indexes[j] = j;
             StdRandom.shuffle(indexes);
         }
 
@@ -118,10 +117,10 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
    /**
-     * Unit tests the <tt>ResizingArrayQueue</tt> data type.
+     * Unit tests the <tt>RandomizedQueue</tt> data type.
      */
-    public static void main(String[] args) { 	
-    	RandomizedQueue<String> q = new RandomizedQueue<String>();
+    public static void main(String[] args) {
+        RandomizedQueue<String> q = new RandomizedQueue<String>();
         while (!StdIn.isEmpty()) {
             String item = StdIn.readString();
             if (!item.equals("-")) q.enqueue(item);
