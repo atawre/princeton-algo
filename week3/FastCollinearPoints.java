@@ -10,36 +10,40 @@ import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 
 public class FastCollinearPoints {
-	private static ArrayList<Point> pointsArray;
 	LineSegment[] lns;	
 
 	public FastCollinearPoints(Point[] points) {
-		// TODO Auto-generated constructor stub
-		if(points == null)
-			throw new java.lang.NullPointerException("No Points present!");
+		
+        // Check if the input is null
+        if (points == null) throw new java.lang.NullPointerException();
+        
+        // Copy over input points to auxiliary array to avoid mutability issues
+        Point[] aux = new Point[points.length];
+        aux = points;
+        
+        // Check if any of the points are null
+        for (int i = 0; i < aux.length; i++) {
+            if (aux[i] == null) throw new java.lang.NullPointerException();
+        }
+        
+        // Check for duplicate points by comparing slope of each point to slope of all preceding points
+        for (int i = 0; i < aux.length; i++) {
+            for (int j = 0; j < i ; j++) {
+                    if (aux[i].slopeTo(aux[j]) == Double.NEGATIVE_INFINITY) throw new java.lang.IllegalArgumentException();
+            }
+        }
 
-		ArrayList<LineSegment>lines = new ArrayList<LineSegment>();
-		pointsArray = new ArrayList<Point>();
-		int i=0;
-		for (Point p : points) {
-			if(p == null)
-				throw new java.lang.NullPointerException("One of the point is null!");
-			
-			if( pointsArray.contains(p) )
-				throw new java.lang.IllegalArgumentException("Duplicate point.");
-			
-			pointsArray.add(p);
-		}
+        // Natural-sort array
+        Arrays.sort(aux);
 
-		Collections.sort(pointsArray);
-		int N = pointsArray.size();
-
-    	ArrayList<Point> slopeOrderPoints = (ArrayList<Point>) pointsArray.clone();
-        // loop through each naturally sorted point
-        for (Point currentPoint : pointsArray) {
-
+        ArrayList<LineSegment>lines = new ArrayList<LineSegment>();
+        int N = aux.length;
+        
+        for (int i = 0; i < aux.length; i++) {
+        	Point currentPoint = aux[i];
             // sort to slope order based on slope to first point
-        	Collections.sort(slopeOrderPoints, currentPoint.slopeOrder());
+            Point[] slopeOrderPoints = aux.clone();
+        	Arrays.sort(slopeOrderPoints, currentPoint.slopeOrder());
 
             // create new segment
             LinkedList<Point> segment = new LinkedList<Point>();
@@ -50,8 +54,8 @@ public class FastCollinearPoints {
             // this loop compares i to j and i to j+1. j only needs to loop through N-2
             for (int j = 1; j < N-1; j++) {
 
-                Point slopePoint = slopeOrderPoints.get(j);
-                Point nextSlopePoint = slopeOrderPoints.get(j+1);
+                Point slopePoint = slopeOrderPoints[j];
+                Point nextSlopePoint = slopeOrderPoints[j+1];
 
                 double slope = currentPoint.slopeTo(slopePoint);
                 double nextSlope = currentPoint.slopeTo(nextSlopePoint);
@@ -66,15 +70,12 @@ public class FastCollinearPoints {
                 // clear segment if no match (end of segment or loop)
                 if (slope != nextSlope || j == N-2) {
                     // first output segment if it is large enough
-                    if (segment.size() > 3) {
-                        //outputSegment(segment);
-                    	
+                    if (segment.size() > 3) {                   	
                         Point first = segment.removeFirst();
                         Point second = segment.removeFirst();
                         Point last = segment.removeLast();
-                        lines.add(new LineSegment(first, last));
                         if (first.compareTo(second) < 0) {
-                            //first.drawTo(last);                            
+                            lines.add(new LineSegment(first, last));                        	
                             StdOut.print(first + " -> " + second + " -> ");
                             for (Point point : segment) {
                                 StdOut.print(point + " -> ");
@@ -87,14 +88,16 @@ public class FastCollinearPoints {
                     segment.add(currentPoint);
                 }
             }
+            slopeOrderPoints = null;
         }
 
         lns = new LineSegment[lines.size()];
-        i = 0;
+        int i = 0;
         for (LineSegment s : lines) {
         	lns[i++] = s;
         }
         lines = null;
+        aux = null;
 	}
 	
 	// the number of line segments
@@ -103,7 +106,7 @@ public class FastCollinearPoints {
 	}
 	
 	// the line segments
-	public LineSegment[] segments(){		
+	public LineSegment[] segments(){
 		return lns;
 	}
 
@@ -139,36 +142,3 @@ public class FastCollinearPoints {
 	}
 }
 
-
-/**
- * 
-    private static void outputSegment(LinkedList<Point> segment) {
-        // to remove sub-segments, we rely on the following logic:
-        // the outer loop's array is sorted via natural order
-        // the inner loop is sorted in slope order according
-        // to the current number in the outer loop
-        // a discovered segment should always start at
-        // its naturally lowest point
-        // in the case of a sub-segment, the outer loop will
-        // start the segment at somewhere other than its lowest
-        // in this case, we can discover this by comparing
-        // whether the first point of the segment is in fact the lowest
-
-        Point first = segment.removeFirst();
-        Point second = segment.removeFirst();
-        Point last = segment.removeLast();
-        if (first.compareTo(second) < 0) {
-
-            first.drawTo(last);
-            StdOut.print(first + " -> " + second + " -> ");
-
-            for (Point point : segment) {
-                StdOut.print(point + " -> ");
-            }
-
-            StdOut.print(last);
-            StdOut.println();
-        }
-    }
-
- * */
