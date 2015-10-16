@@ -7,7 +7,6 @@
  *  For use on Coursera, Algorithms Part I programming assignment.
  *
  ******************************************************************************/
-package week3;
 
 import java.util.Comparator;
 import edu.princeton.cs.algs4.StdDraw;
@@ -88,13 +87,13 @@ public class Point implements Comparable<Point> {
      */
     public int compareTo(Point that) {
         /* YOUR CODE HERE */
-    	if (this.y == that.y)
-    		if (this.x == that.x)
-    			return 0;
-   			else
-    			return (this.x - that.x);
-    	else
-    		return (this.y - that.y);
+        if (this.y == that.y)
+            if (this.x == that.x)
+                return 0;
+            else
+                return (this.x - that.x);
+        else
+            return (this.y - that.y);
     }
 
     private class SlopeOrder implements Comparator<Point> {
@@ -119,10 +118,10 @@ public class Point implements Comparable<Point> {
      * The slope is defined as in the slopeTo() method.
      *
      * @return the Comparator that defines this ordering on points
-	*/
+    */
     
     public Comparator<Point> slopeOrder() {
-    	return new SlopeOrder();
+        return new SlopeOrder();
     }
 
 

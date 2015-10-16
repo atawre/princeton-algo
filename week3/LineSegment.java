@@ -9,7 +9,6 @@
  *  DO NOT MODIFY THIS CODE.
  *
  *************************************************************************/
-package week3;
 
 public class LineSegment {
     private final Point p;   // one endpoint of this line segment
@@ -52,7 +51,7 @@ public class LineSegment {
     /**
      * Throws an exception if called. The hashCode() method is not supported because
      * hashing has not yet been introduced in this course. Moreover, hashing does not
-     * typically lead to good *worst-case* performance guarantees, as required on this
+     * typically lead to good worst-case performance guarantees, as required on this
      * asssignment.
      *
      * @throws UnsupportedOperationException if called
