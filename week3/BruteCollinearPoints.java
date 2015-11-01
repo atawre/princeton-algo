@@ -1,83 +1,59 @@
-
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 
 public class BruteCollinearPoints {
-    private LineSegment[] lns;
-    
-    // finds all line segments containing 4 points
+
+    private LineSegment[] segments;
+
+
     public BruteCollinearPoints(Point[] points) {
-        // Check if the input is null
-        if (points == null) throw new java.lang.NullPointerException();
-        
-        // Copy over input points to auxiliary array to avoid mutability issues
-        Point[] aux = points.clone();
-        
-        // Check if any of the points are null
-        for (int i = 0; i < aux.length; i++) {
-            if (aux[i] == null) throw new java.lang.NullPointerException();
-        }
-        
-        // Check for duplicate points
-        for (int i = 0; i < aux.length; i++) {
-            for (int j = 0; j < i; j++) {
-                    if (aux[i].slopeTo(aux[j]) == Double.NEGATIVE_INFINITY)
-                        throw new java.lang.IllegalArgumentException();
-            }
-        }
+        checkDuplicatedEntries(points);
+        ArrayList<LineSegment> foundSegments = new ArrayList<>();
 
-        ArrayList<LineSegment> lines = new ArrayList<LineSegment>();
+        Point[] aux = Arrays.copyOf(points, points.length);
         Arrays.sort(aux);
-        int N = aux.length;
-        double slopePQ, slopePR, slopePS;
 
-        for (int i = 0; i < N; i++) {
-            for (int j = i + 1; j < N; j++) {
-                slopePQ = aux[i].slopeTo(aux[j]);
-                for (int k = j + 1; k < N; k++) {
-                    slopePR = aux[i].slopeTo(aux[k]);
-                    if (slopePQ != slopePR)
+        double pq, pr, ps;
+        for (int p = 0; p < aux.length - 3; p++) {
+            for (int q = p + 1; q < aux.length - 2; q++) {
+                pq = aux[p].slopeTo(aux[q]);
+                for (int r = q + 1; r < aux.length - 1; r++) {
+                    pr = aux[p].slopeTo(aux[r]);
+                    if (pq != pr)
                         continue;
-                    for (int l =  k + 1; l < N; l++) {
-                        slopePS = aux[i].slopeTo(aux[l]);
-                        if (slopePQ != slopePS)
+                    for (int s = r + 1; s < aux.length; s++) {
+                        ps = aux[p].slopeTo(aux[s]);
+                        if (pq != ps)
                             continue;
-                        
-                        if (aux[i].compareTo(aux[j]) < 1
-                                && aux[j].compareTo(aux[k]) < 1
-                                && aux[k].compareTo(aux[l]) < 1) {
-
-                            //StdOut.println(point1.toString()
-                            //        + " -> " + point2.toString()
-                            //       + " -> " + point3.toString()
-                            //        + " -> " + point4.toString()
-                            //        );
-                            lines.add(new LineSegment(aux[i], aux[l]));
-                        }
+                        foundSegments.add(new LineSegment(aux[p], aux[s]));
                     }
                 }
             }
         }
-        lns = new LineSegment[lines.size()];
-        int i = 0;
-        for (LineSegment s : lines) {
-            lns[i++] = s;
-        }
-        lines = null;
-        aux = null;
+
+        segments = foundSegments.toArray(new LineSegment[foundSegments.size()]);
     }
-    
-    // the number of line segments
+
     public int numberOfSegments() {
-        return lns.length;
+        return segments.length;
     }
-    
-    // the line segments
-    public LineSegment[] segments() {        
-        return Arrays.copyOf(lns, lns.length);
+
+    public LineSegment[] segments() {
+        return Arrays.copyOf(segments, numberOfSegments());
+    }
+
+    private void checkDuplicatedEntries(Point[] points) {
+        for (int i = 0; i < points.length - 1; i++) {
+            for (int j = i + 1; j < points.length; j++) {
+                if (points[i].compareTo(points[j]) == 0) {
+                    throw new IllegalArgumentException("Duplicate points.");
+                }
+            }
+        }
     }
 
     /**
@@ -108,8 +84,6 @@ public class BruteCollinearPoints {
         for (LineSegment segment : collinear.segments()) {
             StdOut.println(segment);
             segment.draw();
-        }       
-        
-        
+        }
     }
 }

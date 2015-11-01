@@ -1,111 +1,92 @@
-
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.HashMap;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 
 public class FastCollinearPoints {
-    private LineSegment[] lns;  
+
+    private HashMap<Double, List<Point>> foundSegments = new HashMap<>();
+    private List<LineSegment> segments = new ArrayList<>();
 
     public FastCollinearPoints(Point[] points) {
-        
-        // Check if the input is null
-        if (points == null) throw new java.lang.NullPointerException();
-        
-        // Copy over input points to auxiliary array to avoid mutability issues
-        Point[] aux = new Point[points.length];
-        aux = points;
-        
-        // Check if any of the points are null
-        for (int i = 0; i < aux.length; i++) {
-            if (aux[i] == null) throw new java.lang.NullPointerException();
-        }
-        
-        // Check for duplicate points by comparing slope of
-        //each point to slope of all preceding points
-        for (int i = 0; i < aux.length; i++) {
-            for (int j = 0; j < i; j++) {
-                    if (aux[i].slopeTo(aux[j]) == Double.NEGATIVE_INFINITY)
-                        throw new java.lang.IllegalArgumentException();
-            }
-        }
-
-        // Natural-sort array
+        checkDuplicateEntries(points);
+        Point[] aux = Arrays.copyOf(points, points.length);
         Arrays.sort(aux);
 
-        ArrayList<LineSegment> lines = new ArrayList<LineSegment>();
-        int N = aux.length;
-        
-        for (int i = 0; i < aux.length; i++) {
-            Point currentPoint = aux[i];
-            // sort to slope order based on slope to first point
-            Point[] slopeOrderPoints = aux.clone();
-            Arrays.sort(slopeOrderPoints, currentPoint.slopeOrder());
+        for (Point startPoint : points) {
+            Arrays.sort(aux, startPoint.slopeOrder());
 
-            // create new segment
-            LinkedList<Point> segment = new LinkedList<Point>();
-            // add point i as origin
-            segment.add(currentPoint);
+            List<Point> slopePoints = new ArrayList<>();
+            double slope = 0;
+            double previousSlope = Double.NEGATIVE_INFINITY;
 
-            for (int j = 1; j < N-1; j++) {
-
-                Point slopePoint = slopeOrderPoints[j];
-                Point nextSlopePoint = slopeOrderPoints[j+1];
-
-                double slope = currentPoint.slopeTo(slopePoint);
-                double nextSlope = currentPoint.slopeTo(nextSlopePoint);
-
-                if (slope == nextSlope) {
-                    if (segment.peekLast() != slopePoint) {
-                        segment.add(slopePoint);
+            for (int i = 1; i < aux.length; i++) {
+                slope = startPoint.slopeTo(aux[i]);
+                if (slope == previousSlope) {
+                    slopePoints.add(aux[i]);
+                } else {
+                    if (slopePoints.size() >= 3) {
+                        slopePoints.add(startPoint);
+                        addSegmentIfNew(slopePoints, previousSlope);
                     }
-                    segment.add(nextSlopePoint);
+                    slopePoints.clear();
+                    slopePoints.add(aux[i]);
                 }
+                previousSlope = slope;
+            }
 
-                // clear segment if no match (end of segment or loop)
-                if (slope != nextSlope || j == N-2) {
-                    // first output segment if it is large enough
-                    if (segment.size() > 3) {                       
-                        Point first = segment.removeFirst();
-                        Point second = segment.removeFirst();
-                        Point last = segment.removeLast();
-                        if (first.compareTo(second) < 0) {
-                            lines.add(new LineSegment(first, last));
-                            StdOut.print(first + " -> " + second + " -> ");
-                            for (Point point : segment) {
-                                StdOut.print(point + " -> ");
-                            }
-                            StdOut.print(last);
-                            StdOut.println();
-                        }
-                    }
-                    segment.clear();
-                    segment.add(currentPoint);
+            if (slopePoints.size() >= 3) {
+                slopePoints.add(startPoint);
+                addSegmentIfNew(slopePoints, slope);
+            }
+        }
+    }
+
+    private void addSegmentIfNew(List<Point> slopePoints, double slope) {
+        List<Point> endPoints = foundSegments.get(slope);
+        Collections.sort(slopePoints);
+
+        Point startPoint = slopePoints.get(0);
+        Point endPoint = slopePoints.get(slopePoints.size() - 1);
+
+        if (endPoints == null) {
+            endPoints = new ArrayList<>();
+            endPoints.add(endPoint);
+            foundSegments.put(slope, endPoints);
+            segments.add(new LineSegment(startPoint, endPoint));
+        } else {
+            for (Point currentEndPoint : endPoints) {
+                if (currentEndPoint.compareTo(endPoint) == 0) {
+                    return;
                 }
             }
-            slopeOrderPoints = null;
+            endPoints.add(endPoint);
+            segments.add(new LineSegment(startPoint, endPoint));
         }
+    }
 
-        lns = new LineSegment[lines.size()];
-        int i = 0;
-        for (LineSegment s : lines) {
-            lns[i++] = s;
+
+    private void checkDuplicateEntries(Point[] points) {
+        for (int i = 0; i < points.length - 1; i++) {
+            for (int j = i + 1; j < points.length; j++) {
+                if (points[i].compareTo(points[j]) == 0) {
+                    throw new IllegalArgumentException("Duplicat points.");
+                }
+            }
         }
-        lines = null;
-        aux = null;
     }
-    
-    // the number of line segments
+
     public int numberOfSegments() {
-        return lns.length;
+        return segments.size();
     }
-    
-    // the line segments
+
     public LineSegment[] segments() {
-        return Arrays.copyOf(lns, lns.length);
+        return segments.toArray(new LineSegment[segments.size()]);
     }
 
     /**
@@ -137,6 +118,7 @@ public class FastCollinearPoints {
             StdOut.println(segment);
             segment.draw();
         }
+        StdOut.println("Done");
     }
+    
 }
-
